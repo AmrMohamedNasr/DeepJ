@@ -10,32 +10,34 @@ genre = [
 styles = [
     [
         'data/baroque/bach',
-        'data/baroque/handel',
-        'data/baroque/pachelbel'
     ],
     [
-        'data/classical/burgmueller',
-        'data/classical/clementi',
-        'data/classical/haydn',
+        #'data/classical/clementi',
+        #'data/classical/haydn',
         'data/classical/beethoven',
-        'data/classical/brahms',
         'data/classical/mozart'
     ],
     [
-        'data/romantic/balakirew',
-        'data/romantic/borodin',
-        'data/romantic/brahms',
+        #'data/romantic/albeniz',
+        #'data/romantic/balakirew',
+        #'data/romantic/borodin',
+        #'data/romantic/brahms',
+        #'data/romantic/burgmueller',
         'data/romantic/chopin',
-        'data/romantic/debussy',
-        'data/romantic/liszt',
+        #'data/romantic/debussy',
+        #'data/romantic/godowsky',
+        #'data/romantic/granados',
+        #'data/romantic/grieg',
+        #'data/romantic/liszt',
         'data/romantic/mendelssohn',
-        'data/romantic/moszkowski',
-        'data/romantic/mussorgsky',
-        'data/romantic/rachmaninov',
-        'data/romantic/schubert',
-        'data/romantic/schumann',
-        'data/romantic/tchaikovsky',
-        'data/romantic/tschai'
+        #'data/romantic/moszkowski',
+        #'data/romantic/mussorgsky',
+        #'data/romantic/rachmaninov',
+        #'data/romantic/ravel',
+        #'data/romantic/schubert',
+        #'data/romantic/schumann',
+        #'data/romantic/sinding',
+        #'data/romantic/tchaikovsky',
     ]
 ]
 
