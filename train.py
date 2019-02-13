@@ -22,7 +22,7 @@ def train(models):
     cbs = [
         ModelCheckpoint(MODEL_FILE, monitor='loss', save_best_only=True, save_weights_only=True),
         EarlyStopping(monitor='loss', patience=5),
-        TensorBoard(log_dir='out/logs', histogram_freq=1)
+        TensorBoard(log_dir='out/logs', histogram_freq=0)
     ]
 
     print('Training')
