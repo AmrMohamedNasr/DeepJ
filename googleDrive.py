@@ -2,6 +2,9 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import os
 from apiclient import errors
+from oauth2client.client import GoogleCredentials
+
+colab_run = True
 
 class GoogleDriveInterface:
     def __init__(self):
@@ -9,8 +12,13 @@ class GoogleDriveInterface:
         # Try to load saved client credentials
         gauth.LoadCredentialsFile("mycreds.txt")
         if gauth.credentials is None:
-            # Authenticate if they're not there
-            gauth.LocalWebserverAuth()
+            if (not colab_run):
+                # Authenticate if they're not there
+                gauth.LocalWebserverAuth()
+            else:
+                from google.colab import auth
+                auth.authenticate_user()
+                gauth.credentials = GoogleCredentials.get_application_default()
         elif gauth.access_token_expired:
             # Refresh them if expired
             gauth.Refresh()
