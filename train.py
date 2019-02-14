@@ -16,6 +16,7 @@ online_backup = True
 def main():
     if (online_backup):
         myDrive = GoogleDriveInterface()
+        os.makedirs(os.path.dirname(MODEL_FILE), exist_ok=True)
         myDrive.downloadFile(MODEL_FILE)
     models = build_or_load()
     train(myDrive, models)
