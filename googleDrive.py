@@ -3,6 +3,7 @@ from pydrive.drive import GoogleDrive
 import os
 from apiclient import errors
 from oauth2client.client import GoogleCredentials
+import tempfile
 
 colab_run = True
 
@@ -30,29 +31,43 @@ class GoogleDriveInterface:
         self.drive = GoogleDrive(gauth)
         self.creds = gauth
 
-    def uploadFile(self, path, folder_id="'1xOe202CuYu5VpPsRitoT0jFulHDSUnPh'"):
+    def uploadFile(self, path, folder_id="'1xOe202CuYu5VpPsRitoT0jFulHDSUnPh'", binary=False):
         file_name = os.path.basename(path)
         print('Uploading ', file_name)
         with open(path,"r") as file:
+            data = file.read()
+            if (binary):
+                with tempfile.NamedTemporaryFile(delete=False) as source_file:
+                    source_file.write(data)
+                    data = source_file.name
             children = self.drive.ListFile({'q': folder_id + " in parents and trashed=false"}).GetList()
             for child in children:
                 if (child['originalFilename'] == file_name):
-                    child.SetContentString(file.read())
+                    child.SetContentString(data)
                     child.Upload()
                     print('Updated ', file_name)
                     return
             file_drive = self.drive.CreateFile({'title': file_name, "parents":  [{"id": folder_id[1:-1]}]  })  
-            file_drive.SetContentString(file.read())
+            file_drive.SetContentString(data)
             file_drive.Upload()
             print('Uploaded ', file_name)
-    def downloadFile(self, path, folder_id="'1xOe202CuYu5VpPsRitoT0jFulHDSUnPh'"):
+    def downloadFile(self, path, folder_id="'1xOe202CuYu5VpPsRitoT0jFulHDSUnPh'", binary=False):
         file_name = os.path.basename(path)
         print('Requesting ', file_name)
         children = self.drive.ListFile({'q': folder_id + " in parents and trashed=false"}).GetList()
         for child in children:
             if (child['originalFilename'] == file_name):
                 file = self.drive.CreateFile({'id': child['id']})
-                file.GetContentFile(path)
+                if (binary):
+                    dest_file = tempfile.NamedTemporaryFile(delete=False)
+                    dest_file.close()
+                    file.GetContentFile(dest_file.name)
+                    b2 = open(dest_file.name, 'rb').read()
+                    f = open(path, 'w+b')
+                    f.write(b2)
+                    f.close()
+                else:
+                    file.GetContentFile(path)
                 print('Downloaded ', file_name)
                 return True
         print('Not available to download ', file_name)
