@@ -34,23 +34,37 @@ class GoogleDriveInterface:
     def uploadFile(self, path, folder_id="'1xOe202CuYu5VpPsRitoT0jFulHDSUnPh'", binary=False):
         file_name = os.path.basename(path)
         print('Uploading ', file_name)
-        with open(path,"r") as file:
-            data = file.read()
-            if (binary):
+        if (binary):
+            with open(path,"rb") as file:
+                data = file.read()
                 with tempfile.NamedTemporaryFile(delete=False) as source_file:
                     source_file.write(data)
                     data = source_file.name
-            children = self.drive.ListFile({'q': folder_id + " in parents and trashed=false"}).GetList()
-            for child in children:
-                if (child['originalFilename'] == file_name):
-                    child.SetContentString(data)
-                    child.Upload()
-                    print('Updated ', file_name)
-                    return
-            file_drive = self.drive.CreateFile({'title': file_name, "parents":  [{"id": folder_id[1:-1]}]  })  
-            file_drive.SetContentString(data)
-            file_drive.Upload()
-            print('Uploaded ', file_name)
+                children = self.drive.ListFile({'q': folder_id + " in parents and trashed=false"}).GetList()
+                for child in children:
+                    if (child['originalFilename'] == file_name):
+                        child.SetContentString(data)
+                        child.Upload()
+                        print('Updated ', file_name)
+                        return
+                file_drive = self.drive.CreateFile({'title': file_name, "parents":  [{"id": folder_id[1:-1]}]  })  
+                file_drive.SetContentString(data)
+                file_drive.Upload()
+                print('Uploaded ', file_name)
+        else:
+            with open(path,"r") as file:
+                data = file.read()
+                children = self.drive.ListFile({'q': folder_id + " in parents and trashed=false"}).GetList()
+                for child in children:
+                    if (child['originalFilename'] == file_name):
+                        child.SetContentString(data)
+                        child.Upload()
+                        print('Updated ', file_name)
+                        return
+                file_drive = self.drive.CreateFile({'title': file_name, "parents":  [{"id": folder_id[1:-1]}]  })  
+                file_drive.SetContentString(data)
+                file_drive.Upload()
+                print('Uploaded ', file_name)
     def downloadFile(self, path, folder_id="'1xOe202CuYu5VpPsRitoT0jFulHDSUnPh'", binary=False):
         file_name = os.path.basename(path)
         print('Requesting ', file_name)
