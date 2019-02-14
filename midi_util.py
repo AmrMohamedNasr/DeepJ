@@ -199,16 +199,16 @@ def load_midi(fname, mydrive=None):
         # Perform caching
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
         if mydrive:
-            if mydrive.downloadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'"):
+            if mydrive.downloadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True):
                 note_seq = np.load(cache_path)
             else:
                 note_seq = midi_decode(p)
                 np.save(cache_path, note_seq)
-                mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'")
+                mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True)
         else:
             note_seq = midi_decode(p)
             np.save(cache_path, note_seq)
-            mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'")
+            mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True)
 
     assert len(note_seq.shape) == 3, note_seq.shape
     assert note_seq.shape[1] == MIDI_MAX_NOTES, note_seq.shape
