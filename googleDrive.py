@@ -39,7 +39,7 @@ class GoogleDriveInterface:
                 data = file.read()
                 with tempfile.NamedTemporaryFile(delete=False) as source_file:
                     source_file.write(data)
-                    data = source_file.name
+                    data = open(source_file.name, 'r').read()
                 children = self.drive.ListFile({'q': folder_id + " in parents and trashed=false"}).GetList()
                 for child in children:
                     if (child['originalFilename'] == file_name):
