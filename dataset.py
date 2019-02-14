@@ -36,7 +36,7 @@ def stagger(data, time_steps):
         dataY.append(data[i + 1:(i + time_steps + 1)])
     return dataX, dataY
 
-def load_all(styles, batch_size, time_steps):
+def load_all(styles, batch_size, time_steps, mydrive=None):
     """
     Loads all MIDI files as a piano roll.
     (For Keras)
@@ -53,7 +53,7 @@ def load_all(styles, batch_size, time_steps):
     for style_id, style in enumerate(styles):
         style_hot = one_hot(style_id, NUM_STYLES)
         # Parallel process all files into a list of music sequences
-        seqs = Parallel(n_jobs=multiprocessing.cpu_count(), backend='threading')(delayed(load_midi)(f) for f in get_all_files([style]))
+        seqs = Parallel(n_jobs=multiprocessing.cpu_count(), backend='threading')(delayed(load_midi)(f, mydrive) for f in get_all_files([style]))
 
         for seq in seqs:
             if len(seq) >= time_steps:

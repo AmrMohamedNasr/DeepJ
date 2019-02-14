@@ -190,7 +190,7 @@ def midi_decode(pattern,
     merged = np.minimum(merged, 1)
     return merged
 
-def load_midi(fname):
+def load_midi(fname, mydrive=None):
     p = midi.read_midifile(fname)
     cache_path = os.path.join(CACHE_DIR, fname + '.npy')
     try:
@@ -198,9 +198,17 @@ def load_midi(fname):
     except Exception as e:
         # Perform caching
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-
-        note_seq = midi_decode(p)
-        np.save(cache_path, note_seq)
+        if mydrive:
+            if mydrive.downloadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'"):
+                note_seq = np.load(cache_path)
+            else:
+                note_seq = midi_decode(p)
+                np.save(cache_path, note_seq)
+                mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'")
+        else:
+            note_seq = midi_decode(p)
+            np.save(cache_path, note_seq)
+            mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'")
 
     assert len(note_seq.shape) == 3, note_seq.shape
     assert note_seq.shape[1] == MIDI_MAX_NOTES, note_seq.shape

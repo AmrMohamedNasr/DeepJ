@@ -4,25 +4,34 @@ from keras.callbacks import EarlyStopping, TensorBoard
 import argparse
 import midi
 import os
-
+from googleDrive import *
 from constants import *
 from dataset import *
 from generate import *
 from midi_util import midi_encode
 from model import *
 
-def main():
-    models = build_or_load()
-    train(models)
+online_backup = True
 
-def train(models):
+def main():
+    if (online_backup):
+        myDrive = GoogleDriveInterface()
+        myDrive.downloadFile(MODEL_FILE)
+    models = build_or_load()
+    train(myDrive, models)
+
+def train(myDrive, models):
     print('Loading data')
-    train_data, train_labels = load_all(styles, BATCH_SIZE, SEQ_LEN)
+    def uploadWrapper(epoch, logs):
+        if (online_backup):
+            myDrive.uploadFile(MODEL_FILE)
+    train_data, train_labels = load_all(styles, BATCH_SIZE, SEQ_LEN, myDrive)
 
     cbs = [
         ModelCheckpoint(MODEL_FILE, monitor='loss', save_best_only=True, save_weights_only=True),
         EarlyStopping(monitor='loss', patience=5),
-        TensorBoard(log_dir='out/logs', histogram_freq=0)
+        TensorBoard(log_dir='out/logs', histogram_freq=0),
+        LambdaCallback(on_epoch_begin=uploadWrapper)
     ]
 
     print('Training')
