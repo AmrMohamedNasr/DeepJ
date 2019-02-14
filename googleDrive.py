@@ -33,7 +33,7 @@ class GoogleDriveInterface:
     def uploadFile(self, path, folder_id="'1xOe202CuYu5VpPsRitoT0jFulHDSUnPh'"):
         file_name = os.path.basename(path)
         print('Uploading ', file_name)
-        with open(path,"r") as file:
+        with open(path,"rb") as file:
             children = self.drive.ListFile({'q': folder_id + " in parents and trashed=false"}).GetList()
             for child in children:
                 if (child['originalFilename'] == file_name):
