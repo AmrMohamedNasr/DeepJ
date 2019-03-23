@@ -34,6 +34,7 @@ def train(myDrive, models):
             else:
                 myDrive.uploadFile(MODEL_FILE,binary = True)
     train_data, train_labels = load_all(styles, BATCH_SIZE, SEQ_LEN, myDrive)
+    print(train_data.shape)
 
     cbs = [
         ModelCheckpoint(MODEL_FILE, monitor='loss', save_best_only=True, save_weights_only=True),
