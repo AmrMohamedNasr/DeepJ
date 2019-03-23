@@ -10,6 +10,7 @@ from dataset import *
 from generate import *
 from midi_util import midi_encode
 from model import *
+import sys
 
 online_backup = True
 
@@ -17,7 +18,10 @@ def main():
     if (online_backup):
         myDrive = GoogleDriveInterface()
         os.makedirs(os.path.dirname(MODEL_FILE), exist_ok=True)
-        myDrive.downloadFile(MODEL_FILE, binary = True)
+        if (len(sys.argv) == 2):
+            myDrive.downloadFile(MODEL_FILE, sys.argv[1], binary = True)
+        else:
+            myDrive.downloadFile(MODEL_FILE, binary = True)
     models = build_or_load()
     train(myDrive, models)
 
@@ -25,7 +29,10 @@ def train(myDrive, models):
     print('Loading data')
     def uploadWrapper(epoch, logs):
         if (online_backup):
-            myDrive.uploadFile(MODEL_FILE,binary = True)
+            if (len(sys.argv) == 2):
+                myDrive.uploadFile(MODEL_FILE, sys.argv[1], binary = True)
+            else:
+                myDrive.uploadFile(MODEL_FILE,binary = True)
     train_data, train_labels = load_all(styles, BATCH_SIZE, SEQ_LEN, myDrive)
 
     cbs = [
