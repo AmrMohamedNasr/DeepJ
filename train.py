@@ -28,13 +28,15 @@ def main():
 def train(myDrive, models):
     print('Loading data')
     def uploadWrapper(epoch, logs):
-        if (online_backup):
-            if (len(sys.argv) == 2):
-                myDrive.uploadFile(MODEL_FILE, sys.argv[1], binary = True)
-            else:
-                myDrive.uploadFile(MODEL_FILE,binary = True)
+        exists = os. path. isfile(MODEL_FILE)
+        if (exists):
+            if (online_backup):
+                if (len(sys.argv) == 2):
+                    myDrive.uploadFile(MODEL_FILE, sys.argv[1], binary = True)
+                else:
+                    myDrive.uploadFile(MODEL_FILE,binary = True)
     train_data, train_labels = load_all(styles, BATCH_SIZE, SEQ_LEN, myDrive)
-    print(train_data.shape)
+    print(len(train_data))
 
     cbs = [
         ModelCheckpoint(MODEL_FILE, monitor='loss', save_best_only=True, save_weights_only=True),
