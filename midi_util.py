@@ -218,7 +218,7 @@ def load_midi(fname, mydrive=None):
         assert (note_seq <= 1).all()
         return note_seq
     except Exception as e:
-        return np.zeros(1,1,1)
+        return None
 
 if __name__ == '__main__':
     # Test
