@@ -191,31 +191,34 @@ def midi_decode(pattern,
     return merged
 
 def load_midi(fname, mydrive=None):
-    p = midi.read_midifile(fname)
-    cache_path = os.path.join(CACHE_DIR, fname + '.npy')
     try:
-        note_seq = np.load(cache_path)
-    except Exception as e:
-        # Perform caching
-        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-        if mydrive:
-            if mydrive.downloadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True):
-                note_seq = np.load(cache_path)
+        p = midi.read_midifile(fname)
+        cache_path = os.path.join(CACHE_DIR, fname + '.npy')
+        try:
+            note_seq = np.load(cache_path)
+        except Exception as e:
+            # Perform caching
+            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+            if mydrive:
+                if mydrive.downloadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True):
+                    note_seq = np.load(cache_path)
+                else:
+                    note_seq = midi_decode(p)
+                    np.save(cache_path, note_seq)
+                    mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True)
             else:
                 note_seq = midi_decode(p)
                 np.save(cache_path, note_seq)
                 mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True)
-        else:
-            note_seq = midi_decode(p)
-            np.save(cache_path, note_seq)
-            mydrive.uploadFile(cache_path, "'1ED51czlQx8QI5LwZnZqE7XK2qxW8f1bw'", binary=True)
 
-    assert len(note_seq.shape) == 3, note_seq.shape
-    assert note_seq.shape[1] == MIDI_MAX_NOTES, note_seq.shape
-    assert note_seq.shape[2] == 3, note_seq.shape
-    assert (note_seq >= 0).all()
-    assert (note_seq <= 1).all()
-    return note_seq
+        assert len(note_seq.shape) == 3, note_seq.shape
+        assert note_seq.shape[1] == MIDI_MAX_NOTES, note_seq.shape
+        assert note_seq.shape[2] == 3, note_seq.shape
+        assert (note_seq >= 0).all()
+        assert (note_seq <= 1).all()
+        return note_seq
+    except Exception as e:
+        return np.zeros(1,1,1)
 
 if __name__ == '__main__':
     # Test
