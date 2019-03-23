@@ -56,8 +56,8 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
         seqs = Parallel(n_jobs=multiprocessing.cpu_count(), backend='threading')(delayed(load_midi)(f, mydrive) for f in get_all_files([style]))
 
         for seq in seqs:
-        	if seq is None:
-        		continue
+            if seq is None:
+                continue
             if len(seq) >= time_steps:
                 # Clamp MIDI to note range
                 seq = clamp_midi(seq)
