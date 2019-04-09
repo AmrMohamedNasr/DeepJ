@@ -2,43 +2,43 @@ import os
 
 # Define the musical styles
 genre = [
-    #'baroque',
-    #'classical',
-    #'romantic',
+    'baroque',
+    'classical',
+    'romantic',
     'arabic'
 ]
 
 styles = [
     [
-        #'data/baroque/bach',
+        'data/baroque/bach',
     ],
     [
-        #'data/classical/clementi',
-        #'data/classical/haydn',
-        #'data/classical/beethoven',
-        #'data/classical/mozart'
+        'data/classical/clementi',
+        'data/classical/haydn',
+        'data/classical/beethoven',
+        'data/classical/mozart'
     ],
     [
-        #'data/romantic/albeniz',
-        #'data/romantic/balakirew',
-        #'data/romantic/borodin',
-        #'data/romantic/brahms',
-        #'data/romantic/burgmueller',
-        #'data/romantic/chopin',
-        #'data/romantic/debussy',
-        #'data/romantic/godowsky',
-        #'data/romantic/granados',
-        #'data/romantic/grieg',
-        #'data/romantic/liszt',
-        #'data/romantic/mendelssohn',
-        #'data/romantic/moszkowski',
-        #'data/romantic/mussorgsky',
-        #'data/romantic/rachmaninov',
-        #'data/romantic/ravel',
-        #'data/romantic/schubert',
-        #'data/romantic/schumann',
-        #'data/romantic/sinding',
-        #'data/romantic/tchaikovsky',
+        'data/romantic/albeniz',
+        'data/romantic/balakirew',
+        'data/romantic/borodin',
+        'data/romantic/brahms',
+        'data/romantic/burgmueller',
+        'data/romantic/chopin',
+        'data/romantic/debussy',
+        'data/romantic/godowsky',
+        'data/romantic/granados',
+        'data/romantic/grieg',
+        'data/romantic/liszt',
+        'data/romantic/mendelssohn',
+        'data/romantic/moszkowski',
+        'data/romantic/mussorgsky',
+        'data/romantic/rachmaninov',
+        'data/romantic/ravel',
+        'data/romantic/schubert',
+        'data/romantic/schumann',
+        'data/romantic/sinding',
+        'data/romantic/tchaikovsky',
     ],
     [	
     	'data/arabic'
