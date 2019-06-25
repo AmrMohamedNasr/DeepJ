@@ -12,7 +12,7 @@ from midi_util import midi_encode
 from model import *
 import sys
 
-online_backup = True
+online_backup = False
 
 def main():
     if (online_backup):
