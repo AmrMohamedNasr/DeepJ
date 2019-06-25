@@ -22,6 +22,8 @@ def main():
             myDrive.downloadFile(MODEL_FILE, sys.argv[1], binary = True)
         else:
             myDrive.downloadFile(MODEL_FILE, binary = True)
+    else:
+    	myDrive = None
     models = build_or_load()
     train(myDrive, models)
 
