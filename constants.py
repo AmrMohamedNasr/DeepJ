@@ -1,48 +1,27 @@
 import os
 
 # Define the musical styles
+
+MELODY_GENERATION = True
+PIANOROLL_PATH = 'tra_X_phrs_768_part0.npy'#'tra_X_phrs_seg_384_part0.npy'
+LABELS_PATH = 'tra_X_labl_768_part0.npy'#'tra_X_labl_seg_384_part0.npy'
+
 genre = [
-    'baroque',
-    'classical',
-    'romantic',
-    'arabic'
+    'electronic',
+    'pop',
+    'rock',
+    'soundtrack',
+    'videogame',
+    'other'
 ]
 
 styles = [
-    [
-        'data/baroque/bach',
-    ],
-    [
-        'data/classical/clementi',
-        'data/classical/haydn',
-        'data/classical/beethoven',
-        'data/classical/mozart'
-    ],
-    [
-        'data/romantic/albeniz',
-        'data/romantic/balakirew',
-        'data/romantic/borodin',
-        'data/romantic/brahms',
-        'data/romantic/burgmueller',
-        'data/romantic/chopin',
-        # 'data/romantic/debussy',
-        # 'data/romantic/godowsky',
-        # 'data/romantic/granados',
-        # 'data/romantic/grieg',
-        # 'data/romantic/liszt',
-        # 'data/romantic/mendelssohn',
-        # 'data/romantic/moszkowski',
-        # 'data/romantic/mussorgsky',
-        # 'data/romantic/rachmaninov',
-        # 'data/romantic/ravel',
-        # 'data/romantic/schubert',
-        # 'data/romantic/schumann',
-        # 'data/romantic/sinding',
-        # 'data/romantic/tchaikovsky',
-    ],
-    [	
-    	'data/arabic'
-    ]
+    ['electronic'],
+    ['pop'],
+    ['rock'],
+    ['soundtrack'],
+    ['videogame'],
+    ['other']
 ]
 
 NUM_STYLES = sum(len(s) for s in styles)

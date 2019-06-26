@@ -106,12 +106,10 @@ def midi_decode(pattern,
     # Extract all tracks at highest resolution
     merged_replay = None
     merged_volume = None
-
     for track in pattern:
         # The downsampled sequences
         replay_sequence = []
         volume_sequence = []
-
         # Raw sequences
         replay_buffer = [np.zeros((classes,))]
         volume_buffer = [np.zeros((classes,))]
@@ -162,7 +160,6 @@ def midi_decode(pattern,
         replay_sequence = np.array(replay_sequence)
         volume_sequence = np.array(volume_sequence)
         assert len(volume_sequence) == len(replay_sequence)
-
         if merged_volume is None:
             merged_replay = replay_sequence
             merged_volume = volume_sequence
@@ -184,7 +181,6 @@ def midi_decode(pattern,
             diff = len(merged_volume) - len(volume_sequence)
             merged_replay += np.pad(replay_sequence, ((0, diff), (0, 0)), 'constant')
             merged_volume += np.pad(volume_sequence, ((0, diff), (0, 0)), 'constant')
-
     merged = np.stack([np.ceil(merged_volume), merged_replay, merged_volume], axis=2)
     # Prevent stacking duplicate notes to exceed one.
     merged = np.minimum(merged, 1)
@@ -196,6 +192,7 @@ def load_midi(fname, mydrive=None):
         cache_path = os.path.join(CACHE_DIR, fname + '.npy')
         try:
             note_seq = np.load(cache_path)
+            print(note_seq.shape)
         except Exception as e:
             # Perform caching
             os.makedirs(os.path.dirname(cache_path), exist_ok=True)
@@ -223,6 +220,8 @@ def load_midi(fname, mydrive=None):
 if __name__ == '__main__':
     # Test
     # p = midi.read_midifile("out/test_in.mid")
-    p = midi.read_midifile("out/test_in.mid")
-    p = midi_encode(midi_decode(p))
-    midi.write_midifile("out/test_out.mid", p)
+    p = midi.read_midifile("data/baroque/bach/bach_847.mid")
+    note_seq = midi_decode(p)
+    print(note_seq.shape)
+    #p = midi_encode(midi_decode(p))
+    #midi.write_midifile("out/test_out.mid", p)

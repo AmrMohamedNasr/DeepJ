@@ -6,7 +6,7 @@ import math
 import random
 from joblib import Parallel, delayed
 import multiprocessing
-
+import os
 from constants import *
 from midi_util import load_midi
 from util import *
@@ -44,38 +44,69 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
     note_data = []
     beat_data = []
     style_data = []
-
+    chosen_data = []
     note_target = []
 
-    # TODO: Can speed this up with better parallel loading. Order gaurentee.
-    styles = [y for x in styles for y in x]
 
-    for style_id, style in enumerate(styles):
-        style_hot = one_hot(style_id, NUM_STYLES)
-        # Parallel process all files into a list of music sequences
-        seqs = Parallel(n_jobs=multiprocessing.cpu_count(), backend='threading')(delayed(load_midi)(f, mydrive) for f in get_all_files([style]))
-
-        for seq in seqs:
-            if seq is None:
+    genre_map = {8: 0, 20: 1, 24: 2, 27: 3, 29: 4, 33: 5}
+    train_label = np.load(LABELS_PATH)
+    labels = np.zeros((train_label.shape[0], 6))
+    for i in range(len(train_label)):
+      cnt = np.count_nonzero(train_label[i] == 1)
+      if cnt > 1 or cnt == 0:
+        labels[i][5] = 1
+        continue;
+      for j in range(len(train_label[i])):
+        if train_label[i][j] == 1:
+          if j in genre_map:
+            labels[i][genre_map[j]] = 1
+          else:
+            labels[i][5] = 1
+    train_label = labels
+    train = np.load(PIANOROLL_PATH)
+    def adapt_pianroll(seq):
+        merged = np.stack([np.ceil(seq), np.zeros_like(seq), seq], axis=2)
+        # Prevent stacking duplicate notes to exceed one.
+        merged = np.minimum(merged, 1)
+        return merged
+    for i in range(len(train)):
+        style_hot = train_label[i,:]
+        if MELODY_GENERATION:
+            seq = train[i,:,:,0]
+            seq = adapt_pianroll(seq)
+        else:
+            seq = train[i,:,:,1]
+            seq = adapt_pianroll(seq)
+            seq_c = train[i,:,:,0]
+            seq_c = adapt_pianroll(seq_c)
+        if seq is None:
                 continue
-            if len(seq) >= time_steps:
-                # Clamp MIDI to note range
-                seq = clamp_midi(seq)
-                # Create training data and labels
+        if len(seq) >= time_steps:
+            # Clamp MIDI to note range
+            seq = clamp_midi(seq)
+            # Create training data and labels
+            if MELODY_GENERATION:
                 train_data, label_data = stagger(seq, time_steps)
                 note_data += train_data
                 note_target += label_data
+                chosen_data += label_data
+            else:
+                train_data, label_data = stagger(seq, time_steps)
+                train_data_c, label_data_c = stagger(seq_c, time_steps)
+                note_data += train_data
+                note_target += label_data
+                chosen_data += label_data_c
+            beats = [compute_beat(i, NOTES_PER_BAR) for i in range(len(seq))]
+            beat_data += stagger(beats, time_steps)[0]
 
-                beats = [compute_beat(i, NOTES_PER_BAR) for i in range(len(seq))]
-                beat_data += stagger(beats, time_steps)[0]
-
-                style_data += stagger([style_hot for i in range(len(seq))], time_steps)[0]
+            style_data += stagger([style_hot for i in range(len(seq))], time_steps)[0]
 
     note_data = np.array(note_data)
     beat_data = np.array(beat_data)
     style_data = np.array(style_data)
     note_target = np.array(note_target)
-    return [note_data, note_target, beat_data, style_data], [note_target]
+    chosen_data = np.array(chosen_data)
+    return [note_data, chosen_data, beat_data, style_data], [note_target]
 
 def clamp_midi(sequence):
     """
