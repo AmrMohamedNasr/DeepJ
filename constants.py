@@ -3,8 +3,8 @@ import os
 # Define the musical styles
 
 MELODY_GENERATION = True
-PIANOROLL_PATH = 'tra_X_phrs_768_part0.npy'#'tra_X_phrs_seg_384_part0.npy'
-LABELS_PATH = 'tra_X_labl_768_part0.npy'#'tra_X_labl_seg_384_part0.npy'
+PIANOROLL_PATH = 'tra_X_phrs_seg_384_part0.npy'
+LABELS_PATH = 'tra_X_labl_seg_384_part0.npy'
 
 genre = [
     'electronic',
