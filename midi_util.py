@@ -223,6 +223,52 @@ def adapt_pianroll(seq):
     merged = np.minimum(merged, 1)
     return merged
 
+def empty_timesteps(org_pianoroll):
+    mel_empty = []
+    cor_empty = []
+    pianoroll = org_pianoroll.copy()
+    melody = pianoroll[:, :, 0]
+    chord = pianoroll[:, :, 1]
+    mel_timestep_vol = len(np.sum(melody, axis = 1).nonzero()[0])
+    chord_timestep_vol = len(np.sum(chord, axis = 1).nonzero()[0])
+    mel_perc = ((pianoroll.shape[0] - mel_timestep_vol) / pianoroll.shape[0] ) * 100
+    cor_perc = ((pianoroll.shape[0] - chord_timestep_vol) / pianoroll.shape[0] ) * 100
+    mel_empty.append(mel_perc)
+    cor_empty.append(cor_perc)
+    print('Average Empty Timesteps in melodies : ', np.mean(mel_empty), '%')
+    print('Average Empty Timesteps in chords : ', np.mean(cor_empty), '%')
+
+def empty_timesteps_s(org_pianoroll):
+    mel_empty = []
+    cor_empty = []
+    pianoroll = org_pianoroll.copy()
+    melody = pianoroll[:, :, 0]
+    chord = pianoroll[:, :, 1]
+    mel_timestep_vol = len(np.sum(melody, axis = 1).nonzero()[0])
+    chord_timestep_vol = len(np.sum(chord, axis = 1).nonzero()[0])
+    mel_perc = ((pianoroll.shape[0] - mel_timestep_vol) / pianoroll.shape[0] ) * 100
+    cor_perc = ((pianoroll.shape[0] - chord_timestep_vol) / pianoroll.shape[0] ) * 100
+    mel_empty.append(mel_perc)
+    cor_empty.append(cor_perc)
+    print('Average Empty Timesteps in melodies : ', np.mean(mel_empty), '%')
+    print('Average Empty Timesteps in chords : ', np.mean(cor_empty), '%')
+
+def empty_timesteps(org_pianoroll):
+  mel_empty = []
+  cor_empty = []
+  pianoroll = org_pianoroll.copy()
+  for i in range(len(pianoroll)):
+      melody = pianoroll[i, :, :, 0]
+      chord = pianoroll[i, :, :, 1]
+      mel_timestep_vol = len(np.sum(melody, axis = 1).nonzero()[0])
+      chord_timestep_vol = len(np.sum(chord, axis = 1).nonzero()[0])
+      mel_perc = ((melody.shape[0] - mel_timestep_vol) / melody.shape[0] ) * 100
+      cor_perc = ((chord.shape[0] - chord_timestep_vol) / chord.shape[0] ) * 100
+      mel_empty.append(mel_perc)
+      cor_empty.append(cor_perc)
+  print('Average Empty Timesteps in melodies : ', np.mean(mel_empty), '%')
+  print('Average Empty Timesteps in chords : ', np.mean(cor_empty), '%')
+
 if __name__ == '__main__':
     # Test
     # p = midi.read_midifile("out/test_in.mid")

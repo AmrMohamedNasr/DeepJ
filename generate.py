@@ -9,7 +9,7 @@ from constants import *
 from util import *
 from dataset import *
 from tqdm import tqdm
-from midi_util import midi_encode
+from midi_util import midi_encode, empty_timesteps_s
 from midi_write import save_midis
 
 def load_midi_roll(path):
@@ -103,7 +103,7 @@ def apply_temperature(prob, temperature):
     # Apply temperature
     if temperature != 1:
         # Inverse sigmoid
-        x = -np.log(1 / (prob - 1 + 1e-15))
+        x = -np.log(1 / (prob - 1))
         # Apply temperature to sigmoid function
         prob = 1 / (1 + np.exp(-x / temperature))
     return prob
@@ -147,13 +147,15 @@ def write_file(name, results):
     Takes a list of all notes generated per track and writes it to file
     """
     results = zip(*list(results))
-
+    nums = 0
     for i, result in enumerate(results):
         fpath = os.path.join(SAMPLES_DIR, name + '_' + str(i) + '.mid')
         print('Writing file', fpath)
         os.makedirs(os.path.dirname(fpath), exist_ok=True)
         mf = midi_encode(unclamp_midi(result))
         midi.write_midifile(fpath, mf)
+        nums = i + 1
+    return nums
 
 def main():
     parser = argparse.ArgumentParser(description='Generates music.')
@@ -172,14 +174,19 @@ def main():
         # Custom style
         styles = [np.mean([one_hot(i, NUM_STYLES) for i in args.styles], axis=0)]
 
-    write_file(args.output_file, generate(models, args.bars, styles, args.melody_file))
+    nums = write_file(args.output_file, generate(models, args.bars, styles, args.melody_file))
     if not MELODY_GENERATION:
         melody_roll = load_midi_roll(args.melody_file)
-        chords_roll = load_midi_roll(args.output_file)
-        print(melody_roll.shape)
-        print(chords_roll.shape)
-        tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
-        print(tracks_roll.shape)
-        save_midis(tracks_roll, args.combined_file)
+        for i in range(nums):
+          chords_roll = load_midi_roll(os.path.join(SAMPLES_DIR, args.output_file + '_' + str(i) + '.mid'))
+          if chords_roll.shape[0] > melody_roll.shape[0]:
+            diff_len = chords_roll.shape[0] - melody_roll.shape[0]
+            melody_roll = np.pad(melody_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
+          else:
+            diff_len = melody_roll.shape[0] - chords_roll.shape[0]
+            chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
+          tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
+          empty_timesteps_s(tracks_roll)
+          save_midis(tracks_roll, args.combined_file)
 if __name__ == '__main__':
     main()
