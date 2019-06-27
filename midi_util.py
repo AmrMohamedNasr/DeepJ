@@ -298,7 +298,7 @@ def empty_timesteps_style_target(org_pianoroll, train_label, target):
   mel_empty = []
   for i in range(len(train_label[0])):
     mel_empty.append([])
-  pianoroll = org_pianoroll.copy()
+  pianoroll = org_pianoroll
   for i in range(len(pianoroll)):
     index = len(train_label[i]) - 1
     for j in range(len(train_label[i])):
