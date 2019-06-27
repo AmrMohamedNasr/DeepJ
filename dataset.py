@@ -8,7 +8,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 import os
 from constants import *
-from midi_util import load_midi, empty_timesteps
+from midi_util import load_midi, empty_timesteps, empty_timesteps_style
 from util import *
 
 def compute_beat(beat, notes_in_bar):
@@ -65,6 +65,7 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
     train_label = labels
     train = np.load(PIANOROLL_PATH)
     empty_timesteps(train)
+    empty_timesteps_style(train, train_label)
     for i in range(len(train)):
         style_hot = train_label[i,:]
         if MELODY_GENERATION:
