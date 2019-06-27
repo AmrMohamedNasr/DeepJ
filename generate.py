@@ -88,7 +88,10 @@ class MusicGeneration:
         # Reset next note
         self.output = np.zeros((NUM_NOTES, NOTE_UNITS))
         if self.melody_roll is not None:
-            self.next_note = self.melody_roll[t + 1, MIN_NOTE:MAX_NOTE, :]
+            if self.melody_roll.shape[0] > t + 1:
+                self.next_note = self.melody_roll[t + 1, MIN_NOTE:MAX_NOTE, :]
+            else:
+                self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
         else:
             self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
         return self.results[-1]
