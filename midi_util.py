@@ -217,6 +217,12 @@ def load_midi(fname, mydrive=None):
     except Exception as e:
         return None
 
+def adapt_pianroll(seq):
+    merged = np.stack([np.ceil(seq), np.zeros_like(seq), seq], axis=2)
+    # Prevent stacking duplicate notes to exceed one.
+    merged = np.minimum(merged, 1)
+    return merged
+
 if __name__ == '__main__':
     # Test
     # p = midi.read_midifile("out/test_in.mid")

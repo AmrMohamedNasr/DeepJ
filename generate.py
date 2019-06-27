@@ -3,24 +3,35 @@ import tensorflow as tf
 from collections import deque
 import midi
 import argparse
-
+import pretty_midi
+import constants
 from constants import *
 from util import *
 from dataset import *
 from tqdm import tqdm
 from midi_util import midi_encode
+from midi_write import save_midis
+
+def load_midi_roll(path):
+  midi = pretty_midi.PrettyMIDI(path)
+  midi.remove_invalid_notes()
+  return np.transpose(midi.get_piano_roll(fs=8))
 
 class MusicGeneration:
     """
     Represents a music generation
     """
-    def __init__(self, style, default_temp=1):
+    def __init__(self, style, melody_roll=None, default_temp=1):
         self.notes_memory = deque([np.zeros((NUM_NOTES, NOTE_UNITS)) for _ in range(SEQ_LEN)], maxlen=SEQ_LEN)
         self.beat_memory = deque([np.zeros(NOTES_PER_BAR) for _ in range(SEQ_LEN)], maxlen=SEQ_LEN)
         self.style_memory = deque([style for _ in range(SEQ_LEN)], maxlen=SEQ_LEN)
-
+        self.melody_roll = melody_roll
         # The next note being built
-        self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
+        self.output = np.zeros((NUM_NOTES, NOTE_UNITS))
+        if self.melody_roll is not None:
+            self.next_note = self.melody_roll[0, MIN_NOTE:MAX_NOTE, :]
+        else:
+            self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
         self.silent_time = NOTES_PER_BAR
 
         # The outputs
@@ -50,19 +61,19 @@ class MusicGeneration:
 
         # Flip notes randomly
         if np.random.random() <= prob[0]:
-            self.next_note[n, 0] = 1
+            self.output[n, 0] = 1
             # Apply volume
-            self.next_note[n, 2] = vol
+            self.output[n, 2] = vol
             # Flip articulation
             if np.random.random() <= prob[1]:
-                self.next_note[n, 1] = 1
+                self.output[n, 1] = 1
 
     def end_time(self, t):
         """
         Finish generation for this time step.
         """
         # Increase temperature while silent.
-        if np.count_nonzero(self.next_note) == 0:
+        if np.count_nonzero(self.output) == 0:
             self.silent_time += 1
             if self.silent_time >= NOTES_PER_BAR:
                 self.temperature += 0.1
@@ -70,12 +81,16 @@ class MusicGeneration:
             self.silent_time = 0
             self.temperature = self.default_temp
 
-        self.notes_memory.append(self.next_note)
+        self.notes_memory.append(self.output)
         # Consistent with dataset representation
         self.beat_memory.append(compute_beat(t, NOTES_PER_BAR))
-        self.results.append(self.next_note)
+        self.results.append(self.output)
         # Reset next note
-        self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
+        self.output = np.zeros((NUM_NOTES, NOTE_UNITS))
+        if self.melody_roll is not None:
+            self.next_note = self.melody_roll[t + 1, MIN_NOTE:MAX_NOTE, :]
+        else:
+            self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
         return self.results[-1]
 
 def apply_temperature(prob, temperature):
@@ -85,7 +100,7 @@ def apply_temperature(prob, temperature):
     # Apply temperature
     if temperature != 1:
         # Inverse sigmoid
-        x = -np.log(1 / prob - 1)
+        x = -np.log(1 / (prob - 1 + 1e-15))
         # Apply temperature to sigmoid function
         prob = 1 / (1 + np.exp(-x / temperature))
     return prob
@@ -95,11 +110,15 @@ def process_inputs(ins):
     ins = [np.array(i) for i in ins]
     return ins
 
-def generate(models, num_bars, styles):
+def generate(models, num_bars, styles, melody_file):
     print('Generating with styles:', styles)
-
+    if not MELODY_GENERATION:
+        melody_roll = load_midi_roll(melody_file)
+        melody_roll = adapt_pianroll(melody_roll)
+    else:
+        melody_roll = None
     _, time_model, note_model = models
-    generations = [MusicGeneration(style) for style in styles]
+    generations = [MusicGeneration(style, melody_roll) for style in styles]
 
     for t in tqdm(range(NOTES_PER_BAR * num_bars)):
         # Produce note-invariant features
@@ -137,17 +156,27 @@ def main():
     parser = argparse.ArgumentParser(description='Generates music.')
     parser.add_argument('--bars', default=32, type=int, help='Number of bars to generate')
     parser.add_argument('--styles', default=None, type=int, nargs='+', help='Styles to mix together')
+    parser.add_argument('--output_file', default='output', type=str, help='output file name')
+    parser.add_argument('--melody_file', default='melody.mid', type=str, help='Melody file to generate chords for if chord generation model')
+    parser.add_argument('--combined_file', default='combined.mid', type=str, help='Combined file of Melody and Chords in case of chord generation')
     args = parser.parse_args()
 
     models = build_or_load()
-
+    print('Available styles : ', constants.styles)
     styles = [compute_genre(i) for i in range(len(genre))]
 
     if args.styles:
         # Custom style
         styles = [np.mean([one_hot(i, NUM_STYLES) for i in args.styles], axis=0)]
 
-    write_file('output', generate(models, args.bars, styles))
-
+    write_file(args.output_file, generate(models, args.bars, styles, args.melody_file))
+    if not MELODY_GENERATION:
+        melody_roll = load_midi_roll(args.melody_file)
+        chords_roll = load_midi_roll(args.output_file)
+        print(melody_roll.shape)
+        print(chords_roll.shape)
+        tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
+        print(tracks_roll.shape)
+        save_midis(tracks_roll, args.combined_file)
 if __name__ == '__main__':
     main()

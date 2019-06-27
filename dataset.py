@@ -64,11 +64,6 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
             labels[i][5] = 1
     train_label = labels
     train = np.load(PIANOROLL_PATH)
-    def adapt_pianroll(seq):
-        merged = np.stack([np.ceil(seq), np.zeros_like(seq), seq], axis=2)
-        # Prevent stacking duplicate notes to exceed one.
-        merged = np.minimum(merged, 1)
-        return merged
     for i in range(len(train)):
         style_hot = train_label[i,:]
         if MELODY_GENERATION:
