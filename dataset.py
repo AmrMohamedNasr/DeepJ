@@ -75,9 +75,9 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
             seq = train[i,:,:,0]
             seq = adapt_pianroll(seq)
         else:
-            seq = train[i,:,:,1]
+            seq = train[i,:int(train[i].shape[0] * 0.95),:,1]
             seq = adapt_pianroll(seq)
-            seq_c = train[i,:,:,0]
+            seq_c = train[i,:int(train[i].shape[0] * 0.95),:,0]
             seq_c = adapt_pianroll(seq_c)
         if seq is None:
                 continue
@@ -91,6 +91,7 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
                 note_target += label_data
                 chosen_data += label_data
             else:
+                seq_c = clamp_midi(seq_c)
                 train_data, label_data = stagger(seq, time_steps)
                 train_data_c, label_data_c = stagger(seq_c, time_steps)
                 note_data += train_data
