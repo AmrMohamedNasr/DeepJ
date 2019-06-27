@@ -277,7 +277,7 @@ def empty_timesteps_style(org_pianoroll, train_label):
     cor_empty.append([])
   pianoroll = org_pianoroll.copy()
   for i in range(len(pianoroll)):
-    index = train_label.shape[1] - 1
+    index = len(train_label[i]) - 1
     for j in range(len(train_label[i])):
         if train_label[i][j] == 1:
           index = j
@@ -289,10 +289,28 @@ def empty_timesteps_style(org_pianoroll, train_label):
     cor_perc = ((chord.shape[0] - chord_timestep_vol) / chord.shape[0] ) * 100
     mel_empty[index].append(mel_perc)
     cor_empty[index].append(cor_perc)
-    for i in range(len(mel_empty)):
-      print('Label : ', i)
-      print('Average Empty Timesteps in melodies : ', np.mean(mel_empty[i]), '%')
-      print('Average Empty Timesteps in chords : ', np.mean(cor_empty[i]), '%')
+  for i in range(len(mel_empty)):
+    print('Label : ', i)
+    print('Average Empty Timesteps in melodies : ', np.mean(mel_empty[i]), '%')
+    print('Average Empty Timesteps in chords : ', np.mean(cor_empty[i]), '%')
+
+def empty_timesteps_style_target(org_pianoroll, train_label, target):
+  mel_empty = []
+  for i in range(len(train_label[0])):
+    mel_empty.append([])
+  pianoroll = org_pianoroll.copy()
+  for i in range(len(pianoroll)):
+    index = len(train_label[i]) - 1
+    for j in range(len(train_label[i])):
+        if train_label[i][j] == 1:
+          index = j
+    melody = pianoroll[i, :, :, target]
+    mel_timestep_vol = len(np.sum(melody, axis = 1).nonzero()[0])
+    mel_perc = ((melody.shape[0] - mel_timestep_vol) / melody.shape[0] ) * 100
+    mel_empty[index].append(mel_perc)
+  for i in range(len(mel_empty)):
+    print('Label : ', i)
+    print('Average Empty Timesteps in target output : ', np.mean(mel_empty[i]), '%')
 
 if __name__ == '__main__':
     # Test

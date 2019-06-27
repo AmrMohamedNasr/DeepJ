@@ -97,13 +97,13 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
             beats = [compute_beat(i, NOTES_PER_BAR) for i in range(len(seq))]
             beat_data += stagger(beats, time_steps)[0]
 
-            style_data += stagger([style_hot for i in range(len(seq))], time_steps)[0]
-
+            style_data += stagger([style_hot for i in range(len(seq))], time_steps)[0]       
     note_data = np.array(note_data)
     beat_data = np.array(beat_data)
     style_data = np.array(style_data)
     note_target = np.array(note_target)
     chosen_data = np.array(chosen_data)
+    empty_timesteps_style_target(note_target, train_label, 0)
     return [note_data, chosen_data, beat_data, style_data], [note_target]
 
 def clamp_midi(sequence):
