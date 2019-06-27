@@ -270,8 +270,11 @@ def empty_timesteps(org_pianoroll):
   print('Average Empty Timesteps in chords : ', np.mean(cor_empty), '%')
 
 def empty_timesteps_style(org_pianoroll, train_label):
-  mel_empty = [[]] * train_label.shape[1]
-  cor_empty = [[]] * train_label.shape[1]
+  mel_empty = [] 
+  cor_empty = []
+  for i in range(len(train_label[0])):
+    mel_empty.append([])
+    cor_empty.append([])
   pianoroll = org_pianoroll.copy()
   for i in range(len(pianoroll)):
     index = train_label.shape[1] - 1
@@ -284,8 +287,8 @@ def empty_timesteps_style(org_pianoroll, train_label):
     chord_timestep_vol = len(np.sum(chord, axis = 1).nonzero()[0])
     mel_perc = ((melody.shape[0] - mel_timestep_vol) / melody.shape[0] ) * 100
     cor_perc = ((chord.shape[0] - chord_timestep_vol) / chord.shape[0] ) * 100
-    mel_empty[j].append(mel_perc)
-    cor_empty[j].append(cor_perc)
+    mel_empty[index].append(mel_perc)
+    cor_empty[index].append(cor_perc)
     for i in range(len(mel_empty)):
       print('Label : ', i)
       print('Average Empty Timesteps in melodies : ', np.mean(mel_empty[i]), '%')
