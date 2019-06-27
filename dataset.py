@@ -103,7 +103,7 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
     style_data = np.array(style_data)
     note_target = np.array(note_target)
     chosen_data = np.array(chosen_data)
-    empty_timesteps_style_target(note_target, train_label, 0)
+    empty_timesteps_style_target(note_target, style_data, 0)
     return [note_data, chosen_data, beat_data, style_data], [note_target]
 
 def clamp_midi(sequence):
