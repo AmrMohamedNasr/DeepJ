@@ -296,13 +296,13 @@ def empty_timesteps_style(org_pianoroll, train_label):
 
 def empty_timesteps_style_target(org_pianoroll, train_label, target):
   mel_empty = []
-  for i in range(len(train_label[0])):
+  for i in range(len(train_label[0,0])):
     mel_empty.append([])
   pianoroll = org_pianoroll
   for i in range(len(pianoroll)):
-    index = len(train_label[i]) - 1
-    for j in range(len(train_label[i])):
-        if train_label[i][j] == 1:
+    index = len(train_label[i,0]) - 1
+    for j in range(len(train_label[i,0])):
+        if train_label[i][0][j] == 1:
           index = j
     melody = pianoroll[i, :, :, target]
     mel_timestep_vol = len(np.sum(melody, axis = 1).nonzero()[0])
