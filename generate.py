@@ -1,3 +1,5 @@
+%%writefile generate.py
+
 import numpy as np
 import tensorflow as tf
 from collections import deque
@@ -9,13 +11,9 @@ from constants import *
 from util import *
 from dataset import *
 from tqdm import tqdm
-from midi_util import midi_encode, empty_timesteps_s
-from midi_write import save_midis
+from midi_util import midi_encode, empty_timesteps_s, midi_multi_encode, midi_roll_read
+from midi_write import save_midis, write_piano_roll_to_midi
 
-def load_midi_roll(path):
-  midi = pretty_midi.PrettyMIDI(path)
-  midi.remove_invalid_notes()
-  return np.transpose(midi.get_piano_roll(fs=8))
 
 class MusicGeneration:
     """
@@ -131,8 +129,7 @@ def process_inputs(ins):
 def generate(models, num_bars, styles, melody_file):
     print('Generating with styles:', styles)
     if not MELODY_GENERATION:
-        melody_roll = load_midi_roll(melody_file)
-        melody_roll = adapt_pianroll(melody_roll)
+        melody_roll = midi_roll_read(melody_file)
     else:
         melody_roll = None
     _, time_model, note_model = models
@@ -172,6 +169,7 @@ def write_file(name, results):
         nums = i + 1
     return nums
 
+  
 def main():
     parser = argparse.ArgumentParser(description='Generates music.')
     parser.add_argument('--bars', default=32, type=int, help='Number of bars to generate')
@@ -191,17 +189,17 @@ def main():
 
     nums = write_file(args.output_file, generate(models, args.bars, styles, args.melody_file))
     if not MELODY_GENERATION:
-        melody_roll = load_midi_roll(args.melody_file)
+        melody_roll = midi_roll_read(args.melody_file)
         for i in range(nums):
-          chords_roll = load_midi_roll(os.path.join(SAMPLES_DIR, args.output_file + '_' + str(i) + '.mid'))
+          chords_roll = midi_roll_read(os.path.join(SAMPLES_DIR, args.output_file + '_' + str(i) + '.mid'))
           if chords_roll.shape[0] > melody_roll.shape[0]:
             diff_len = chords_roll.shape[0] - melody_roll.shape[0]
-            melody_roll = np.pad(melody_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
+            melody_roll = np.pad(melody_roll, ((0, diff_len), (0, 0), (0, 0)), mode='constant',constant_values=0)
           else:
             diff_len = melody_roll.shape[0] - chords_roll.shape[0]
-            chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
-          tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
-          empty_timesteps_s(tracks_roll)
-          save_midis(tracks_roll, args.combined_file)
+            chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0), (0, 0)), mode='constant',constant_values=0)
+          tracks_roll = np.stack([melody_roll, chords_roll], axis=3)
+          empty_timesteps_s(tracks_roll[:,:,2,:])
+          midi.write_midifile(args.combined_file, midi_multi_encode(tracks_roll))
 if __name__ == '__main__':
     main()
