@@ -60,7 +60,7 @@ class MusicGeneration:
             np.array(note_features),
             np.array([self.next_note]),
             np.array(list(self.style_memory)[-1:]),
-            np.array([self.cond_note])
+            np.array(self.cond_note)
         )
 
     def choose(self, prob, n):
