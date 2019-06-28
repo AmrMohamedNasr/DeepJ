@@ -1,3 +1,4 @@
+%%writefile dataset.py
 """
 Preprocesses MIDI files
 """
@@ -72,9 +73,9 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
             seq = train[i,:,:,0]
             seq = adapt_pianroll(seq)
         else:
-            seq = train[i,:int(train[i].shape[0] * 0.95),:,1]
+            seq = train[i,:int(train[i].shape[0]),:,1]
             seq = adapt_pianroll(seq)
-            seq_c = train[i,:int(train[i].shape[0] * 0.95),:,0]
+            seq_c = train[i,:int(train[i].shape[0]),:,0]
             seq_c = adapt_pianroll(seq_c)
         if seq is None:
                 continue
@@ -93,7 +94,6 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
                 train_data_c, label_data_c = stagger(seq_c, time_steps)
                 note_data += train_data
                 note_target += label_data
-                chosen_data += label_data
                 condit_data += label_data_c
             beats = [compute_beat(i, NOTES_PER_BAR) for i in range(len(seq))]
             beat_data += stagger(beats, time_steps)[0]
@@ -103,7 +103,7 @@ def load_all(styles, batch_size, time_steps, mydrive=None):
     beat_data = np.array(beat_data)
     style_data = np.array(style_data)
     note_target = np.array(note_target)
-    chosen_data = np.array(chosen_data)
+    chosen_data = note_target
     condit_data = np.array(condit_data)
     empty_timesteps_style_target(note_target, style_data, 0)
     return [note_data, chosen_data, beat_data, style_data, condit_data], [note_target]
