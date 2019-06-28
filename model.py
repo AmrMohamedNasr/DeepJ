@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from keras.layers import Input, LSTM, Dense, Dropout, Lambda, Reshape, Permute
 from keras.layers import TimeDistributed, RepeatVector, Conv1D, Activation
-from keras.layers import Embedding, Flatten
+from keras.layers import Embedding, Flatten, Conv2D, LeakyReLU, Conv3D
 from keras.layers.merge import Concatenate, Add
 from keras.models import Model
 import keras.backend as K
@@ -87,14 +87,30 @@ def time_axis(dropout):
         # [batch, time, notes, features]
         return Permute((2, 1, 3))(x)
     return f
-
+def conditional_features(condit):
+	reshaped = Reshape((NUM_OCTAVES, NOTES_PER_BAR * 2, NUM_NOTES, NOTE_UNITS))(condit)
+	add_layer = lambda any_model, f, k, s : LeakyReLU(alpha=0.2)(Conv3D(f, kernel_size=k, strides=s)(any_model))
+	s1 = [add_layer(reshaped, 16, (1, 1, 6), (1, 1, 6)) for _ in range(NOTE_UNITS)]
+	s1 = [add_layer(s1[i], 32, (1, 3, 1), (1, 3, 1)) for i in range(NOTE_UNITS)]
+	s2 = [add_layer(reshaped, 16, (1, 3, 1), (1, 3, 1)) for _ in range(NOTE_UNITS)]
+	s2 = [add_layer(s2[i], 32, (1, 1, 6), (1, 1, 6)) for i in range(NOTE_UNITS)]
+	h = [Concatenate(axis = -1)([s1[i], s2[i]]) for i in range(NOTE_UNITS)]
+	h = [add_layer(h[i], 64, (1, 1, 1), (1, 1, 1)) for i in range(NOTE_UNITS)]
+	h = Concatenate(axis = -1)(h)
+	h = add_layer(h, 128, (1, 4, 3), (1, 4, 2))
+	h = add_layer(h, 256, (1, 2, 3), (1, 2, 3)) 
+	h = add_layer(h, 512, (2, 1, 1), (1, 1, 1))
+	h = Flatten()(h)
+	h = RepeatVector(SEQ_LEN)(h)
+	return h
 def note_axis(dropout):
     dense_layer_cache = {}
+    cond_d_layer_cache = {}
     lstm_layer_cache = {}
     note_dense = Dense(2, activation='sigmoid', name='note_dense')
     volume_dense = Dense(1, name='volume_dense')
 
-    def f(x, chosen, style):
+    def f(x, chosen, style, condit):
         time_steps = int(x.get_shape()[1])
 
         # Shift target one note to the left.
@@ -102,6 +118,8 @@ def note_axis(dropout):
 
         # [batch, time, notes, 1]
         shift_chosen = Reshape((time_steps, NUM_NOTES, -1))(shift_chosen)
+
+        condit_features = conditional_features(condit)
         # [batch, time, notes, features + 1]
         x = Concatenate(axis=3)([x, shift_chosen])
 
@@ -109,12 +127,18 @@ def note_axis(dropout):
             # Integrate style
             if l not in dense_layer_cache:
                 dense_layer_cache[l] = Dense(int(x.get_shape()[3]))
-
+            if l not in cond_d_layer_cache:
+                cond_d_layer_cache[l] = Dense(int(x.get_shape()[3]))
             style_proj = dense_layer_cache[l](style)
             style_proj = TimeDistributed(RepeatVector(NUM_NOTES))(style_proj)
             style_proj = Activation('tanh')(style_proj)
             style_proj = Dropout(dropout)(style_proj)
-            x = Add()([x, style_proj])
+
+            cond_proj = cond_d_layer_cache[l](condit_features)
+            cond_proj = TimeDistributed(RepeatVector(NUM_NOTES))(cond_proj)
+            cond_proj = Activation('tanh')(cond_proj)
+            cond_proj = Dropout(dropout)(cond_proj)
+            x = Add()([x, style_proj, cond_proj])
 
             if l not in lstm_layer_cache:
                 lstm_layer_cache[l] = LSTM(NOTE_AXIS_UNITS, return_sequences=True)
@@ -131,7 +155,7 @@ def build_models(time_steps=SEQ_LEN, input_dropout=0.2, dropout=0.5):
     style_in = Input((time_steps, NUM_STYLES))
     # Target input for conditioning
     chosen_in = Input((time_steps, NUM_NOTES, NOTE_UNITS))
-
+    condit_in = Input((time_steps, NUM_NOTES, NOTE_UNITS))
     # Dropout inputs
     notes = Dropout(input_dropout)(notes_in)
     beat = Dropout(input_dropout)(beat_in)
@@ -146,9 +170,9 @@ def build_models(time_steps=SEQ_LEN, input_dropout=0.2, dropout=0.5):
 
     """ Note Axis & Prediction Layer """
     naxis = note_axis(dropout)
-    notes_out = naxis(time_out, chosen, style)
+    notes_out = naxis(time_out, chosen, style, condit_in)
 
-    model = Model([notes_in, chosen_in, beat_in, style_in], [notes_out])
+    model = Model([notes_in, chosen_in, beat_in, style_in, condit_in], [notes_out])
     model.compile(optimizer='nadam', loss=[primary_loss])
 
     """ Generation Models """
@@ -157,13 +181,13 @@ def build_models(time_steps=SEQ_LEN, input_dropout=0.2, dropout=0.5):
     note_features = Input((1, NUM_NOTES, TIME_AXIS_UNITS), name='note_features')
     chosen_gen_in = Input((1, NUM_NOTES, NOTE_UNITS), name='chosen_gen_in')
     style_gen_in = Input((1, NUM_STYLES), name='style_in')
-
+    condit_gen_in = Input((time_steps, NUM_NOTES, NOTE_UNITS), name='conditional_gen_in')
     # Dropout inputs
     chosen_gen = Dropout(input_dropout)(chosen_gen_in)
     style_gen = style_l(style_gen_in)
 
-    note_gen_out = naxis(note_features, chosen_gen, style_gen)
+    note_gen_out = naxis(note_features, chosen_gen, style_gen, condit_gen_in)
 
-    note_model = Model([note_features, chosen_gen_in, style_gen_in], note_gen_out)
+    note_model = Model([note_features, chosen_gen_in, style_gen_in, condit_gen_in], note_gen_out)
 
     return model, time_model, note_model

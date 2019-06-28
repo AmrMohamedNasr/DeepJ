@@ -27,11 +27,18 @@ class MusicGeneration:
         self.style_memory = deque([style for _ in range(SEQ_LEN)], maxlen=SEQ_LEN)
         self.melody_roll = melody_roll
         # The next note being built
-        self.output = np.zeros((NUM_NOTES, NOTE_UNITS))
+        self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
         if self.melody_roll is not None:
-            self.next_note = self.melody_roll[0, MIN_NOTE:MAX_NOTE, :]
+            if (self.melody_roll.shape[0] < SEQ_LEN):
+                diff_len = SEQ_LEN - self.melody_roll.shape[0]
+                lim = self.melody_roll.shape[0]
+            else:
+                diff_len = 0
+                lim = SEQ_LEN
+            self.cond_note = self.melody_roll[0:lim, MIN_NOTE:MAX_NOTE, :]
+            self.cond_note = np.pad(self.cond_note, ((0, diff_len), (0, 0), (0, 0)), mode='constant',constant_values=0)
         else:
-            self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
+            self.cond_note = np.zeros((SEQ_LEN, NUM_NOTES, NOTE_UNITS))
         self.silent_time = NOTES_PER_BAR
 
         # The outputs
@@ -52,7 +59,8 @@ class MusicGeneration:
         return (
             np.array(note_features),
             np.array([self.next_note]),
-            np.array(list(self.style_memory)[-1:])
+            np.array(list(self.style_memory)[-1:]),
+            np.array([self.cond_note])
         )
 
     def choose(self, prob, n):
@@ -61,19 +69,19 @@ class MusicGeneration:
 
         # Flip notes randomly
         if np.random.random() <= prob[0]:
-            self.output[n, 0] = 1
+            self.next_note[n, 0] = 1
             # Apply volume
-            self.output[n, 2] = vol
+            self.next_note[n, 2] = vol
             # Flip articulation
             if np.random.random() <= prob[1]:
-                self.output[n, 1] = 1
+                self.next_note[n, 1] = 1
 
     def end_time(self, t):
         """
         Finish generation for this time step.
         """
         # Increase temperature while silent.
-        if np.count_nonzero(self.output) == 0:
+        if np.count_nonzero(self.next_note) == 0:
             self.silent_time += 1
             if self.silent_time >= NOTES_PER_BAR:
                 self.temperature += 0.1
@@ -81,17 +89,24 @@ class MusicGeneration:
             self.silent_time = 0
             self.temperature = self.default_temp
 
-        self.notes_memory.append(self.output)
+        self.notes_memory.append(self.next_note)
         # Consistent with dataset representation
         self.beat_memory.append(compute_beat(t, NOTES_PER_BAR))
-        self.results.append(self.output)
+        self.results.append(self.next_note)
         # Reset next note
-        self.output = np.zeros((NUM_NOTES, NOTE_UNITS))
+        self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
         if self.melody_roll is not None:
             if self.melody_roll.shape[0] > t + 1:
-                self.next_note = self.melody_roll[t + 1, MIN_NOTE:MAX_NOTE, :]
+                if (self.melody_roll.shape[0] < t + 1 + SEQ_LEN):
+                    diff_len = t + 1 + SEQ_LEN - self.melody_roll.shape[0]
+                    lim = self.melody_roll.shape[0]
+                else:
+                    diff_len = 0
+                    lim = SEQ_LEN
+                self.cond_note = self.melody_roll[t + 1:t + 1 + lim, MIN_NOTE:MAX_NOTE, :]
+                self.cond_note = np.pad(self.cond_note, ((0, diff_len), (0, 0), (0, 0)), mode='constant',constant_values=0)
             else:
-                self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
+                self.cond_note = np.zeros((SEQ_LEN, NUM_NOTES, NOTE_UNITS))
         else:
             self.next_note = np.zeros((NUM_NOTES, NOTE_UNITS))
         return self.results[-1]

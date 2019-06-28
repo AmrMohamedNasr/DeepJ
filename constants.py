@@ -2,7 +2,7 @@ import os
 
 # Define the musical styles
 
-MELODY_GENERATION = True
+MELODY_GENERATION = False
 PIANOROLL_PATH = 'tra_X_phrs_seg_384_part0.npy'
 LABELS_PATH = 'tra_X_labl_seg_384_part0.npy'
 
