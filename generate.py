@@ -204,7 +204,7 @@ def main():
           tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
           diff_beat = (12 - (tracks_roll.shape[0] % 12) ) % 12
           if diff_beat != 0:
-            tracks_roll = np.pad(tracks_roll, ((0, diff_beat), (0,0), (0,0)))   
+            tracks_roll = np.pad(tracks_roll, ((0, diff_beat), (0,0), (0,0)), mode='constant',constant_values=0)   
           print('Final shape : ', tracks_roll.shape)
           empty_timesteps_s(tracks_roll)
           fpath = os.path.join(SAMPLES_DIR, args.combined_file + '_' + str(i) + '.mid')
