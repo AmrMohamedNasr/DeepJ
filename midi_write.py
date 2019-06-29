@@ -81,4 +81,4 @@ def save_midis(bars, file_path):
         images_with_pause_list.append(bars[:,:,:,ch_idx].reshape(bars.shape[0],  \
                                                         bars.shape[1], bars.shape[2]))
     write_piano_rolls_to_midi(images_with_pause_list, program_nums=[0,1], is_drum=[False, False],  \
-                                                            filename=file_path, tempo=80.0)
+                                                            filename=file_path, tempo=120.0)

@@ -162,8 +162,13 @@ def write_file(name, results):
         fpath = os.path.join(SAMPLES_DIR, name + '_' + str(i) + '.mid')
         print('Writing file', fpath)
         os.makedirs(os.path.dirname(fpath), exist_ok=True)
-        mf = midi_encode(unclamp_midi(result))
-        midi.write_midifile(fpath, mf)
+        mf = unclamp_midi(result)
+        bars = mf[:,:,0].reshape(1, mf.shape[0], mf.shape[1])
+        #mf = midi_encode(unclamp_midi(result))
+        #midi.write_midifile(fpath, mf)
+        diff_length = 128 - MAX_NOTE
+        bars = np.concatenate((bars, np.zeros((bars.shape[0], bars.shape[1], diff_length))), axis=2)
+        write_piano_roll_to_midi(bars, fpath)
         nums = i + 1
     return nums
 
@@ -187,19 +192,6 @@ def main():
 
     nums = write_file(args.output_file, generate(models, args.bars, styles, args.melody_file))
     if not MELODY_GENERATION:
-        melody_roll = midi_roll_read(args.melody_file)
-        for i in range(nums):
-          chords_roll = midi_roll_read(os.path.join(SAMPLES_DIR, args.output_file + '_' + str(i) + '.mid'))
-          if chords_roll.shape[0] > melody_roll.shape[0]:
-            diff_len = chords_roll.shape[0] - melody_roll.shape[0]
-            melody_roll = np.pad(melody_roll, ((0, diff_len), (0, 0), (0, 0)), mode='constant',constant_values=0)
-          else:
-            diff_len = melody_roll.shape[0] - chords_roll.shape[0]
-            chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0), (0, 0)), mode='constant',constant_values=0)
-          tracks_roll = np.stack([melody_roll, chords_roll], axis=3)
-          empty_timesteps_s(tracks_roll[:,:,2,:])
-          midi.write_midifile(args.combined_file, midi_multi_encode(tracks_roll))
-
         melody_roll = load_midi_roll(args.melody_file)
         for i in range(nums):
           chords_roll = load_midi_roll(os.path.join(SAMPLES_DIR, args.output_file + '_' + str(i) + '.mid'))
