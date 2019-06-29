@@ -11,7 +11,7 @@ def load_midi_roll(path):
   midi.remove_invalid_notes()
   return np.transpose(midi.get_piano_roll(fs=8))
 
-def set_piano_roll_to_instrument(piano_roll, instrument, velocity=100, tempo=120.0, beat_resolution=4):
+def set_piano_roll_to_instrument(piano_roll, instrument, velocity=100, tempo=80.0, beat_resolution=12):
     # Calculate time per pixel
     tpp = 60.0/tempo/float(beat_resolution)
     # Create piano_roll_search that captures note onsets and offsets
@@ -35,7 +35,7 @@ def set_piano_roll_to_instrument(piano_roll, instrument, velocity=100, tempo=120
     # Sort the notes by their start time
     instrument.notes.sort(key=lambda note: note.start)
 
-def write_piano_roll_to_midi(piano_roll, filename, program_num=0, is_drum=False, velocity=100, tempo=120.0, beat_resolution=4):
+def write_piano_roll_to_midi(piano_roll, filename, program_num=0, is_drum=False, velocity=100, tempo=80.0, beat_resolution=12):
     # Create a PrettyMIDI object
     midi = pretty_midi.PrettyMIDI(initial_tempo=tempo)
     # Create an Instrument object
@@ -47,7 +47,7 @@ def write_piano_roll_to_midi(piano_roll, filename, program_num=0, is_drum=False,
     # Write out the MIDI data
     midi.write(filename)
     
-def write_piano_rolls_to_midi(piano_rolls, program_nums=None, is_drum=None, filename='test.mid', velocity=100, tempo=120.0, beat_resolution=4):
+def write_piano_rolls_to_midi(piano_rolls, program_nums=None, is_drum=None, filename='test.mid', velocity=100, tempo=80.0, beat_resolution=12):
     #print('piano_rolls',len(piano_rolls))
     #print('program_nums',len(program_nums))
     #print('is_drum',len(is_drum))
@@ -81,4 +81,4 @@ def save_midis(bars, file_path):
         images_with_pause_list.append(bars[:,:,:,ch_idx].reshape(bars.shape[0],  \
                                                         bars.shape[1], bars.shape[2]))
     write_piano_rolls_to_midi(images_with_pause_list, program_nums=[0,1], is_drum=[False, False],  \
-                                                            filename=file_path, tempo=120.0)
+                                                            filename=file_path, tempo=80.0)
