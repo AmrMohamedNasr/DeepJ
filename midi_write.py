@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 import librosa
 from constants import *
 
+def load_midi_roll(path):
+  midi = pretty_midi.PrettyMIDI(path)
+  midi.remove_invalid_notes()
+  return np.transpose(midi.get_piano_roll(fs=8))
+
 def set_piano_roll_to_instrument(piano_roll, instrument, velocity=100, tempo=120.0, beat_resolution=12):
     # Calculate time per pixel
     tpp = 60.0/tempo/float(beat_resolution)

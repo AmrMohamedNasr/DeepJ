@@ -10,7 +10,7 @@ from util import *
 from dataset import *
 from tqdm import tqdm
 from midi_util import midi_encode, empty_timesteps_s, midi_multi_encode, midi_roll_read
-from midi_write import save_midis, write_piano_roll_to_midi
+from midi_write import save_midis, write_piano_roll_to_midi, load_midi_roll
 
 
 class MusicGeneration:
@@ -199,5 +199,17 @@ def main():
           tracks_roll = np.stack([melody_roll, chords_roll], axis=3)
           empty_timesteps_s(tracks_roll[:,:,2,:])
           midi.write_midifile(args.combined_file, midi_multi_encode(tracks_roll))
+
+        melody_roll = load_midi_roll(args.melody_file)
+        for i in range(nums):
+          chords_roll = load_midi_roll(os.path.join(SAMPLES_DIR, args.output_file + '_' + str(i) + '.mid'))
+          if chords_roll.shape[0] > melody_roll.shape[0]:
+            diff_len = chords_roll.shape[0] - melody_roll.shape[0]
+            melody_roll = np.pad(melody_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
+          else:
+            diff_len = melody_roll.shape[0] - chords_roll.shape[0]
+            chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
+          tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
+          save_midis(tracks_roll, args.combined_file +'.rearrnge')
 if __name__ == '__main__':
     main()
