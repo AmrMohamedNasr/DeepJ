@@ -179,7 +179,7 @@ def main():
     parser.add_argument('--styles', default=None, type=int, nargs='+', help='Styles to mix together')
     parser.add_argument('--output_file', default='output', type=str, help='output file name')
     parser.add_argument('--melody_file', default='melody.mid', type=str, help='Melody file to generate chords for if chord generation model')
-    parser.add_argument('--combined_file', default='combined.mid', type=str, help='Combined file of Melody and Chords in case of chord generation')
+    parser.add_argument('--combined_file', default='combined', type=str, help='Combined file of Melody and Chords in case of chord generation')
     args = parser.parse_args()
 
     models = build_or_load()
@@ -202,6 +202,13 @@ def main():
             diff_len = melody_roll.shape[0] - chords_roll.shape[0]
             chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
           tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
-          save_midis(tracks_roll, args.combined_file)
+          int diff12 = (12 - (tracks_roll.shape[0] % 12) ) % 12
+          if diff12 != 0:
+            tracks_roll = np.pad(tracks_roll, ((0, diff12), (0,0), (0,0)))   
+          print('Final shape : ', tracks_roll.shape)
+          empty_timesteps_s(tracks_roll)
+          fpath = os.path.join(SAMPLES_DIR, args.combined_file + '_' + str(i) + '.mid')
+          print('Writing file', fpath)
+          save_midis(tracks_roll, fpath)
 if __name__ == '__main__':
     main()
