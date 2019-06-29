@@ -204,9 +204,9 @@ def main():
             diff_len = melody_roll.shape[0] - chords_roll.shape[0]
             chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
           tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
-          print(melody_roll.shape)
-          print(chords_roll.shape)
-          print(tracks_roll.shape)
-          save_midis(tracks_roll, os.path.join(SAMPLES_DIR, args.combined_file + '_' + str(i) + '.mid'))
+          empty_timesteps_s(tracks_roll)
+          fpath = os.path.join(SAMPLES_DIR, args.combined_file + '_' + str(i) + '.mid')
+          print('Writing file', fpath)
+          save_midis(tracks_roll, fpath)
 if __name__ == '__main__':
     main()
