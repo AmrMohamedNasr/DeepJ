@@ -9,6 +9,7 @@ from util import *
 from dataset import *
 from tqdm import tqdm
 from midi_util import midi_encode
+from midi_write import write_piano_roll_to_midi
 
 class MusicGeneration:
     """
@@ -130,9 +131,13 @@ def write_file(name, results):
         fpath = os.path.join(SAMPLES_DIR, name + '_' + str(i) + '.mid')
         print('Writing file', fpath)
         os.makedirs(os.path.dirname(fpath), exist_ok=True)
-        mf = midi_encode(unclamp_midi(result))
-        midi.write_midifile(fpath, mf)
-
+        mf = unclamp_midi(result)
+        bars = mf[:,:,0].reshape(1, mf.shape[0], mf.shape[1])
+        #mf = midi_encode(unclamp_midi(result))
+        #midi.write_midifile(fpath, mf)
+        diff_length = 128 - MAX_NOTE
+        bars = np.concatenate((bars, np.zeros((bars.shape[0], bars.shape[1], diff_length))), axis=2)
+        write_piano_roll_to_midi(bars, fpath)
 def main():
     parser = argparse.ArgumentParser(description='Generates music.')
     parser.add_argument('--bars', default=32, type=int, help='Number of bars to generate')
