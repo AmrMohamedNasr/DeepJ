@@ -202,6 +202,6 @@ def main():
             diff_len = melody_roll.shape[0] - chords_roll.shape[0]
             chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
           tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
-          save_midis(tracks_roll, args.combined_file +'.rearrnge')
+          save_midis(tracks_roll, args.combined_file)
 if __name__ == '__main__':
     main()
