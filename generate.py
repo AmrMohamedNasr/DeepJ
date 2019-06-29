@@ -195,8 +195,6 @@ def main():
         melody_roll = load_midi_roll(args.melody_file)
         for i in range(nums):
           chords_roll = load_midi_roll(os.path.join(SAMPLES_DIR, args.output_file + '_' + str(i) + '.mid'))
-          print(melody_roll.shape)
-          print(chords_roll.shape)
           if chords_roll.shape[0] > melody_roll.shape[0]:
             diff_len = chords_roll.shape[0] - melody_roll.shape[0]
             melody_roll = np.pad(melody_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
