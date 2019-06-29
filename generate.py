@@ -190,8 +190,7 @@ def main():
         # Custom style
         styles = [np.mean([one_hot(i, NUM_STYLES) for i in args.styles], axis=0)]
 
-    #nums = write_file(args.output_file, generate(models, args.bars, styles, args.melody_file))
-    nums = 1
+    nums = write_file(args.output_file, generate(models, args.bars, styles, args.melody_file))
     if not MELODY_GENERATION:
         melody_roll = load_midi_roll(args.melody_file)
         for i in range(nums):
@@ -203,10 +202,6 @@ def main():
             diff_len = melody_roll.shape[0] - chords_roll.shape[0]
             chords_roll = np.pad(chords_roll, ((0, diff_len), (0, 0)), mode='constant',constant_values=0)
           tracks_roll = np.stack([melody_roll, chords_roll], axis=2)
-          diff_beat = (48 - (tracks_roll.shape[0] % 48) ) % 48
-          if diff_beat != 0:
-            tracks_roll = np.pad(tracks_roll, ((0, diff_beat), (0,0), (0,0)), mode='constant',constant_values=0)   
-          print('Final shape : ', tracks_roll.shape)
           empty_timesteps_s(tracks_roll)
           fpath = os.path.join(SAMPLES_DIR, args.combined_file + '_' + str(i) + '.mid')
           print('Writing file', fpath)
