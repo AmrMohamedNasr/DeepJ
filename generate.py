@@ -3,7 +3,7 @@ import tensorflow as tf
 from collections import deque
 import midi
 import argparse
-
+import constants
 from constants import *
 from util import *
 from dataset import *
@@ -140,7 +140,7 @@ def main():
     args = parser.parse_args()
 
     models = build_or_load()
-
+    print('Available styles : ', constants.styles)
     styles = [compute_genre(i) for i in range(len(genre))]
 
     if args.styles:
