@@ -25,7 +25,7 @@ def evaluate():
     batch_size = args.batch
     print('Available styles : ', constants.styles)
     print('Loading data')
-    train_data, train_labels = load_all(styles, BATCH_SIZE, SEQ_LEN, None)
+    train_data, train_labels = load_all(constants.styles, BATCH_SIZE, SEQ_LEN, None)
     if (len(train_data) == 4):
       _, _, _, style_data = train_data
       train_data = None
