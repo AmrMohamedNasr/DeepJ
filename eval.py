@@ -24,7 +24,6 @@ def evaluate():
     args = parser.parse_args()
     batch_size = args.batch
     print('Available styles : ', constants.styles)
-    styles = [compute_genre(i) for i in range(len(genre))]
     print('Loading data')
     train_data, train_labels = load_all(styles, BATCH_SIZE, SEQ_LEN, None)
     if (len(train_data) == 4):
