@@ -152,6 +152,30 @@ def generate(models, num_bars, styles, melody_file):
         # Move one time step
         yield [g.end_time(t) for g in generations]
 
+def generate_roll(models, num_bars, styles, melody_roll):
+    print('Generating with styles:', styles)
+    _, time_model, note_model = models
+    generations = [MusicGeneration(style, melody_roll) for style in styles]
+
+    for t in tqdm(range(NOTES_PER_BAR * num_bars)):
+        # Produce note-invariant features
+        ins = process_inputs([g.build_time_inputs() for g in generations])
+        # Pick only the last time step
+        note_features = time_model.predict(ins)
+        note_features = np.array(note_features)[:, -1:, :]
+
+        # Generate each note conditioned on previous
+        for n in range(NUM_NOTES):
+            ins = process_inputs([g.build_note_inputs(note_features[i, :, :, :]) for i, g in enumerate(generations)])
+            predictions = np.array(note_model.predict(ins))
+
+            for i, g in enumerate(generations):
+                # Remove the temporal dimension
+                g.choose(predictions[i][-1], n)
+
+        # Move one time step
+        yield [g.end_time(t) for g in generations]
+
 def write_file(name, results):
     """
     Takes a list of all notes generated per track and writes it to file
