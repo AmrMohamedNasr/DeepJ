@@ -77,7 +77,7 @@ def evaluate():
       metrics_eval_single(gen_track)
       print('-----------------------------------------------------------------------')
       for i in range(len(gen_track_style)):
-        gen_track_style[i] = np.array(gen_track_style)
+        gen_track_style[i] = np.array(gen_track_style[i])
         print('Generation Style "', flat_styles[i] ,'" metrics : ')
         metrics_eval_single(gen_track_style[i])
         print('-----------------------------------------------------------------------')
@@ -150,7 +150,7 @@ def evaluate():
       metrics_eval(gen_track)
       print('-----------------------------------------------------------------------')
       for i in range(len(gen_track_style)):
-        gen_track_style[i] = np.array(gen_track_style)
+        gen_track_style[i] = np.array(gen_track_style[i])
         print('Generation Style "', flat_styles[i] ,'" metrics : ')
         metrics_eval(gen_track_style[i])
         print('-----------------------------------------------------------------------')
