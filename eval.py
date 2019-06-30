@@ -53,7 +53,6 @@ def evaluate():
         print('Dataset Style "', flat_styles[i] ,'" metrics : ')
         metrics_eval_single(all_tracks_style[i])
         print('-----------------------------------------------------------------------')
-      exit()
       num_styles = len(all_tracks_style)
       all_tracks_style = None
       style_data = None
