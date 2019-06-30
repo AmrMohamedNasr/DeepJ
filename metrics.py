@@ -280,7 +280,7 @@ class Metrics(object):
         """
 
         ##batch =  np.reshape(batch,(-1, time_steps_num, notes_num, 6))
-        batch =  np.reshape(batch,(-1, self.time_steps_num, self.notes_num, 2))
+        ##batch =  np.reshape(batch,(-1, self.time_steps_num, self.notes_num, 2))
         
         num_batch = len(batch)
         score_matrix = np.zeros((self.metrics_num, self.track_num, num_batch)) * np.nan
