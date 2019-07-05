@@ -8,7 +8,7 @@ from constants import *
 
 def midi_roll_read(path):
     p = midi.read_midifile(path)
-    note_seq = midi_decode(p)
+    note_seq = midi_decode(p, notes_per_beat = 8)
     return note_seq
 def midi_multi_encode(note_seq, resolution=NOTES_PER_BEAT, step=1):
     """
@@ -189,12 +189,13 @@ def midi_encode(note_seq, resolution=NOTES_PER_BEAT, step=1):
 
 def midi_decode(pattern,
                 classes=MIDI_MAX_NOTES,
-                step=None):
+                step=None,
+                notes_per_beat=NOTES_PER_BEAT):
     """
     Takes a MIDI pattern and decodes it into a piano roll.
     """
     if step is None:
-        step = pattern.resolution // NOTES_PER_BEAT
+        step = pattern.resolution // notes_per_beat
 
     # Extract all tracks at highest resolution
     merged_replay = None
